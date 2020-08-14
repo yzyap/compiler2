@@ -32,6 +32,7 @@ def testpage(request):
                     if has_template:
                         executor.set_template(code_template)
                     execution_result = executor.execute()
+                    print("bitti")
                     template_data['result'] = execution_result.name
                     template_data['test_cases_total'] = executor.get_num_test_cases()
                     if executor.get_num_failed_test_cases() is not None:
