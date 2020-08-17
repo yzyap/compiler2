@@ -73,7 +73,7 @@ class Compiler:
     hasErrors = False
     hasExecuted = False
     hasFile = False
-    maxExecTime = 5  # [unit: seconds] Default value, can be overridden
+    maxExecTime = 5000  # [unit: seconds] Default value, can be overridden
 
     def add_test_case(self, test_case):
         print("** Test case added **")
