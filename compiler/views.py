@@ -30,6 +30,21 @@ def testpage(request):
         elif 'terminate_code' in request.POST:
             executor.terminate()
             return HttpResponse("Terminated!")
+        form = forms.CodeExecutorForm(request.POST)
+        if form.is_valid():
+            executor = Compiler()
+            code = form.cleaned_data['code']
+
+            executor.set_code(code)
+            
+            execution_result = executor.execute()
+
+            executor.delete_code_file()
+
+            return HttpResponse("Worked!")
+            
+        else:
+            return HttpResponse("Cannot sanitize form data")
     else:
         form = forms.CodeExecutorForm()
         template_data['form'] = form

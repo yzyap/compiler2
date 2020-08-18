@@ -39,6 +39,7 @@ class Compiler:
     hasFile = False
     maxExecTime = 10  # [unit: seconds] Default value, can be overridden
     process = None
+    maxExecTime = 5  # [unit: seconds] Default value, can be overridden
 
     def set_code(self, code):
         self.code = code
@@ -85,6 +86,16 @@ class Compiler:
         #burada bekliyor
         try:
             o, e = self.process.communicate(timeout=self.maxExecTime)
+        if self.outputs is None:
+            self.outputs = []
+        if self.errors is None:
+            self.errors = []
+
+        process = subprocess.Popen(command, stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
+
+        #burada bekliyor
+        try:
+            o, e = process.communicate(timeout=self.maxExecTime)
             self.outputs.append(o.decode('utf-8'))
             if len(e) != 0:
                 self.errors.append(e.decode('utf-8'))
@@ -97,6 +108,8 @@ class Compiler:
             print("*** TIMEOUT, killing process... ***")
             if self.process is not None:
                 self.process.kill()
+            if process is not None:
+                process.kill()
             self.hasExecuted = False
             self.exec_status = ExecutionStatus.TLE
 
