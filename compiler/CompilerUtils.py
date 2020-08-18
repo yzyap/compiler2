@@ -37,7 +37,8 @@ class Compiler:
     hasErrors = False
     hasExecuted = False
     hasFile = False
-    maxExecTime = 5  # [unit: seconds] Default value, can be overridden
+    maxExecTime = 10  # [unit: seconds] Default value, can be overridden
+    process = None
 
     def set_code(self, code):
         self.code = code
@@ -64,6 +65,11 @@ class Compiler:
         self.hasFile = False
         self.filename = None
 
+    def terminate(self):
+        if self.process is not None:
+            self.process.kill() 
+            print("Killing process")      
+
     def execute(self):
         self.exec_status = ExecutionStatus.NYR
         if not self.hasFile or self.filename is None:
@@ -71,16 +77,14 @@ class Compiler:
 
         command = ["python", self.filename]
 
-        if self.outputs is None:
-            self.outputs = []
-        if self.errors is None:
-            self.errors = []
+        self.outputs = []
+        self.errors = []
 
-        process = subprocess.Popen(command, stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
+        self.process = subprocess.Popen(command, stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
 
         #burada bekliyor
         try:
-            o, e = process.communicate(timeout=self.maxExecTime)
+            o, e = self.process.communicate(timeout=self.maxExecTime)
             self.outputs.append(o.decode('utf-8'))
             if len(e) != 0:
                 self.errors.append(e.decode('utf-8'))
@@ -91,8 +95,8 @@ class Compiler:
 
         except subprocess.TimeoutExpired:
             print("*** TIMEOUT, killing process... ***")
-            if process is not None:
-                process.kill()
+            if self.process is not None:
+                self.process.kill()
             self.hasExecuted = False
             self.exec_status = ExecutionStatus.TLE
 

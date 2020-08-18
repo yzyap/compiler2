@@ -6,24 +6,30 @@ from .CompilerUtils import Compiler
 
 
 # Create your views here.
+executor = Compiler()
+
 def testpage(request):
     template_data = {}
     if request.method == 'POST':
-        form = forms.CodeExecutorForm(request.POST)
-        if form.is_valid():
-            executor = Compiler()
-            code = form.cleaned_data['code']
+        if 'submit_code' in request.POST:
+            form = forms.CodeExecutorForm(request.POST)
+            if form.is_valid():
+                code = form.cleaned_data['code']
 
-            executor.set_code(code)
-            
-            execution_result = executor.execute()
+                executor.set_code(code)
+                
+                execution_result = executor.execute()
 
-            executor.delete_code_file()
+                executor.delete_code_file()
 
-            return HttpResponse("Worked!")
-            
-        else:
-            return HttpResponse("Cannot sanitize form data")
+                return HttpResponse("Worked!")
+                
+            else:
+                return HttpResponse("Cannot sanitize form data")
+
+        elif 'terminate_code' in request.POST:
+            executor.terminate()
+            return HttpResponse("Terminated!")
     else:
         form = forms.CodeExecutorForm()
         template_data['form'] = form
