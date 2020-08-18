@@ -73,8 +73,9 @@ class Compiler:
     hasErrors = False
     hasExecuted = False
     hasFile = False
-    maxExecTime = 5  # [unit: seconds] Default value, can be overridden
+    maxExecTime = 20  # [unit: seconds] Default value, can be overridden
     process = None
+    last_pid = 0
 
     def add_test_case(self, test_case):
         print("** Test case added **")
@@ -182,11 +183,11 @@ class Compiler:
         return values
 
     def kill(self):
-        print("*** TIMEOUT, killing process... ***")
         if self.process is not None:
-            print("mg kill process debug:", self.process)
+            print("mg kill process debug:", self.process.pid)
+            # subprocess.run(["kill", "-15", self.last_pid])
             self.process.kill()
-        print("kill process is None")
+
         self.hasExecuted = False
         self.exec_status = ExecutionStatus.TLE        
 
@@ -210,7 +211,8 @@ class Compiler:
                 print("Test cases # : "+str(len(self.test_cases)))
                 for test_case in self.test_cases:
                     self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-                    print("mg execute process debug:", self.process)
+                    print("mg execute process debug:", self.process.pid)
+                    self.last_pid = self.process.pid
                     try:
                         o, e = self.process.communicate(str(test_case.get_input()).encode('utf-8'), timeout=self.maxExecTime)
                         self.outputs.append(o.decode('utf-8'))

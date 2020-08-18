@@ -4,6 +4,7 @@ from . import forms
 from . import CompilerUtils
 from .CompilerUtils import Compiler, Language
 
+executor = Compiler()
 
 # Create your views here.
 def testpage(request):
@@ -11,7 +12,7 @@ def testpage(request):
     if request.method == 'POST':
         form = forms.CodeExecutorForm(request.POST)
         if form.is_valid():
-            executor = Compiler()
+            # executor = Compiler()
             code = form.cleaned_data['code']
             input_data = form.cleaned_data['input']
             expected_output = form.cleaned_data['output']
@@ -55,7 +56,7 @@ def testpage(request):
                             template_data['display_data'] = display_data
                             return render(request, 'OutputView.html', template_data)
 
-                    if("kill_code" in request.POST): 
+                    elif("kill_code" in request.POST): 
                         execution_result = executor.kill()
                         return HttpResponse("Process Killed")
 
