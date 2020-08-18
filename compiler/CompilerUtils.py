@@ -73,9 +73,7 @@ class Compiler:
     hasErrors = False
     hasExecuted = False
     hasFile = False
-    maxExecTime = 20  # [unit: seconds] Default value, can be overridden
-    process = None
-    last_pid = 0
+    maxExecTime = 5000  # [unit: seconds] Default value, can be overridden
 
     def add_test_case(self, test_case):
         print("** Test case added **")
@@ -182,15 +180,6 @@ class Compiler:
 
         return values
 
-    def kill(self):
-        if self.process is not None:
-            print("mg kill process debug:", self.process.pid)
-            # subprocess.run(["kill", "-15", self.last_pid])
-            self.process.kill()
-
-        self.hasExecuted = False
-        self.exec_status = ExecutionStatus.TLE        
-
     def execute(self):
         self.exec_status = ExecutionStatus.NYR
 
@@ -210,11 +199,10 @@ class Compiler:
 
                 print("Test cases # : "+str(len(self.test_cases)))
                 for test_case in self.test_cases:
-                    self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-                    print("mg execute process debug:", self.process.pid)
-                    self.last_pid = self.process.pid
+                    process = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+
                     try:
-                        o, e = self.process.communicate(str(test_case.get_input()).encode('utf-8'), timeout=self.maxExecTime)
+                        o, e = process.communicate(str(test_case.get_input()).encode('utf-8'), timeout=self.maxExecTime)
                         self.outputs.append(o.decode('utf-8'))
 
                         if len(e) != 0:
@@ -227,8 +215,8 @@ class Compiler:
 
                     except subprocess.TimeoutExpired:
                         print("*** TIMEOUT, killing process... ***")
-                        if self.process is not None:
-                            self.process.kill()
+                        if process is not None:
+                            process.kill()
                         self.hasExecuted = False
                         self.exec_status = ExecutionStatus.TLE
                         break
@@ -248,4 +236,3 @@ class Compiler:
             print("*** Error : No Programming Language Selected ***")
             self.exec_status = ExecutionStatus.INE
         return self.exec_status
-

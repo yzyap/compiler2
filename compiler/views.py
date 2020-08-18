@@ -4,7 +4,6 @@ from . import forms
 from . import CompilerUtils
 from .CompilerUtils import Compiler, Language
 
-executor = Compiler()
 
 # Create your views here.
 def testpage(request):
@@ -12,7 +11,7 @@ def testpage(request):
     if request.method == 'POST':
         form = forms.CodeExecutorForm(request.POST)
         if form.is_valid():
-            # executor = Compiler()
+            executor = Compiler()
             code = form.cleaned_data['code']
             input_data = form.cleaned_data['input']
             expected_output = form.cleaned_data['output']
@@ -32,37 +31,29 @@ def testpage(request):
                     executor.set_language(lan)
                     if has_template:
                         executor.set_template(code_template)
-                    
-                    if("submit_code" in request.POST): 
-                        execution_result = executor.execute()
-
-                        template_data['result'] = execution_result.name
-                        template_data['test_cases_total'] = executor.get_num_test_cases()
-                        if executor.get_num_failed_test_cases() is not None:
-                            template_data['test_cases_passed'] = executor.get_num_test_cases() - executor.get_num_failed_test_cases()
-                        executor.delete_code_file()
-                        if executor.hasExecuted:
-                            checked_values = executor.compare_outputs()
-                            display_data = []
-                            outputs = executor.get_output()
-                            errors = executor.get_errors()
-                            for i in range(len(outputs)):
-                                if executor.hasErrors:
-                                    e = errors[i]
-                                else:
-                                    e = "No errors!"
-                                temp_tuple = (i+1, checked_values[i], outputs[i], e)
-                                display_data.append(temp_tuple)
-                            template_data['display_data'] = display_data
-                            return render(request, 'OutputView.html', template_data)
-
-                    elif("kill_code" in request.POST): 
-                        execution_result = executor.kill()
-                        return HttpResponse("Process Killed")
-
+                    execution_result = executor.execute()
+                    print("bitti")
+                    template_data['result'] = execution_result.name
+                    template_data['test_cases_total'] = executor.get_num_test_cases()
+                    if executor.get_num_failed_test_cases() is not None:
+                        template_data['test_cases_passed'] = executor.get_num_test_cases() - executor.get_num_failed_test_cases()
+                    executor.delete_code_file()
+                    if executor.hasExecuted:
+                        checked_values = executor.compare_outputs()
+                        display_data = []
+                        outputs = executor.get_output()
+                        errors = executor.get_errors()
+                        for i in range(len(outputs)):
+                            if executor.hasErrors:
+                                e = errors[i]
+                            else:
+                                e = "No errors!"
+                            temp_tuple = (i+1, checked_values[i], outputs[i], e)
+                            display_data.append(temp_tuple)
+                        template_data['display_data'] = display_data
+                        return render(request, 'OutputView.html', template_data)
                     else:
                         return render(request, 'generic_error.html', {'error': 'Sorry! Execution failed'})
-
         else:
             return HttpResponse("Cannot sanitize form data")
     else:
