@@ -9,51 +9,58 @@ from .CompilerUtils import Compiler, Language
 def testpage(request):
     template_data = {}
     if request.method == 'POST':
-        form = forms.CodeExecutorForm(request.POST)
-        if form.is_valid():
-            executor = Compiler()
-            code = form.cleaned_data['code']
-            input_data = form.cleaned_data['input']
-            expected_output = form.cleaned_data['output']
-            test_cases = CompilerUtils.generate_test_cases(input_data, expected_output)
-            for test_case in test_cases:
-                executor.add_test_case(test_case)
-            lan = Language(int(form.cleaned_data['language']))
-            has_template = form.cleaned_data['has_template']
-            if has_template:
-                code_template = form.cleaned_data['template']
-            if len(input_data) == 0 or input_data is None:
-                template_data['error'] = "Invalid code"
-                return render(request, 'generic_error.html', template_data)
-            else:
-                if lan == Language.PYTHON:
-                    executor.set_code(code)
-                    executor.set_language(lan)
-                    if has_template:
-                        executor.set_template(code_template)
-                    execution_result = executor.execute()
-                    print("bitti")
-                    template_data['result'] = execution_result.name
-                    template_data['test_cases_total'] = executor.get_num_test_cases()
-                    if executor.get_num_failed_test_cases() is not None:
-                        template_data['test_cases_passed'] = executor.get_num_test_cases() - executor.get_num_failed_test_cases()
-                    executor.delete_code_file()
-                    if executor.hasExecuted:
-                        checked_values = executor.compare_outputs()
-                        display_data = []
-                        outputs = executor.get_output()
-                        errors = executor.get_errors()
-                        for i in range(len(outputs)):
-                            if executor.hasErrors:
-                                e = errors[i]
-                            else:
-                                e = "No errors!"
-                            temp_tuple = (i+1, checked_values[i], outputs[i], e)
-                            display_data.append(temp_tuple)
-                        template_data['display_data'] = display_data
-                        return render(request, 'OutputView.html', template_data)
-                    else:
-                        return render(request, 'generic_error.html', {'error': 'Sorry! Execution failed'})
+        if("submit_code" in request.POST): 
+            print ("submit_code pressed")
+            form = forms.CodeExecutorForm(request.POST)
+            if form.is_valid():
+                executor = Compiler()
+                code = form.cleaned_data['code']
+                input_data = form.cleaned_data['input']
+                expected_output = form.cleaned_data['output']
+                test_cases = CompilerUtils.generate_test_cases(input_data, expected_output)
+                for test_case in test_cases:
+                    executor.add_test_case(test_case)
+                lan = Language(int(form.cleaned_data['language']))
+                has_template = form.cleaned_data['has_template']
+                if has_template:
+                    code_template = form.cleaned_data['template']
+                if len(input_data) == 0 or input_data is None:
+                    template_data['error'] = "Invalid code"
+                    return render(request, 'generic_error.html', template_data)
+                else:
+                    if lan == Language.PYTHON:
+                        executor.set_code(code)
+                        executor.set_language(lan)
+                        if has_template:
+                            executor.set_template(code_template)
+                        execution_result = executor.execute()
+                        print("bitti")
+                        template_data['result'] = execution_result.name
+                        template_data['test_cases_total'] = executor.get_num_test_cases()
+                        if executor.get_num_failed_test_cases() is not None:
+                            template_data['test_cases_passed'] = executor.get_num_test_cases() - executor.get_num_failed_test_cases()
+                        executor.delete_code_file()
+                        if executor.hasExecuted:
+                            checked_values = executor.compare_outputs()
+                            display_data = []
+                            outputs = executor.get_output()
+                            errors = executor.get_errors()
+                            for i in range(len(outputs)):
+                                if executor.hasErrors:
+                                    e = errors[i]
+                                else:
+                                    e = "No errors!"
+                                temp_tuple = (i+1, checked_values[i], outputs[i], e)
+                                display_data.append(temp_tuple)
+                            template_data['display_data'] = display_data
+                            return render(request, 'OutputView.html', template_data)
+                        else:
+                            return render(request, 'generic_error.html', {'error': 'Sorry! Execution failed'})
+
+        elif("kill_code" in request.POST): 
+            print ("kill_code pressed")
+            return HttpResponse("Kill code button pressed")
+
         else:
             return HttpResponse("Cannot sanitize form data")
     else:
