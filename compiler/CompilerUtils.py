@@ -73,7 +73,8 @@ class Compiler:
     hasErrors = False
     hasExecuted = False
     hasFile = False
-    maxExecTime = 5000  # [unit: seconds] Default value, can be overridden
+    maxExecTime = 5  # [unit: seconds] Default value, can be overridden
+    process = None
 
     def add_test_case(self, test_case):
         print("** Test case added **")
@@ -180,6 +181,15 @@ class Compiler:
 
         return values
 
+    def kill(self):
+        print("*** TIMEOUT, killing process... ***")
+        if self.process is not None:
+            print("mg kill process debug:", self.process)
+            self.process.kill()
+        print("kill process is None")
+        self.hasExecuted = False
+        self.exec_status = ExecutionStatus.TLE        
+
     def execute(self):
         self.exec_status = ExecutionStatus.NYR
 
@@ -199,10 +209,10 @@ class Compiler:
 
                 print("Test cases # : "+str(len(self.test_cases)))
                 for test_case in self.test_cases:
-                    process = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-
+                    self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+                    print("mg execute process debug:", self.process)
                     try:
-                        o, e = process.communicate(str(test_case.get_input()).encode('utf-8'), timeout=self.maxExecTime)
+                        o, e = self.process.communicate(str(test_case.get_input()).encode('utf-8'), timeout=self.maxExecTime)
                         self.outputs.append(o.decode('utf-8'))
 
                         if len(e) != 0:
@@ -215,8 +225,8 @@ class Compiler:
 
                     except subprocess.TimeoutExpired:
                         print("*** TIMEOUT, killing process... ***")
-                        if process is not None:
-                            process.kill()
+                        if self.process is not None:
+                            self.process.kill()
                         self.hasExecuted = False
                         self.exec_status = ExecutionStatus.TLE
                         break
@@ -236,3 +246,4 @@ class Compiler:
             print("*** Error : No Programming Language Selected ***")
             self.exec_status = ExecutionStatus.INE
         return self.exec_status
+
